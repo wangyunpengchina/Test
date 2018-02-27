@@ -1,0 +1,2 @@
+http://ox86.tumblr.com/post/129341221225/look-ma-no-canvas-server-side-3d-rendering-with //threejs render on server
+git position: https://github.com/AVGP/three-software-renderer.git
