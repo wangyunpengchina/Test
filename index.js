@@ -7,11 +7,11 @@ global.document = MockBrowser.createDocument();
 global.window = MockBrowser.createWindow();
 global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 var schedule = require("node-schedule");
+require('three-fbx-loader')(THREE)
 
 require("./libs/CanvasRenderer.js");
 require("./libs/Projector.js");
 require("./libs/inflate.min.js");
-require("./libs/FBXLoader.js");
 require("./libs/controls/OrbitControls.js");
 require("./libs/Detector.js");
 var Stats = require("./libs/stats.min.js");
@@ -36,7 +36,6 @@ var clock = new THREE.Clock();
 
 var response, camera, scene, renderer, target;
 
-init();
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 45, width / height, 100, 50000 );
@@ -62,12 +61,13 @@ function init() {
     scene.add( light );
 
     //load fbx model file
-    var loader = new THREE.FBXLoader();
+    var loader = new THREE.FBXLoader()
 
-    loader.load( 'resources/models/NA.fbx', function( object ) {
-        scene.add( object );
-
-    });
+    loader.load('./resources/models/NA.fbx', function (geometry) {
+        var material = new THREE.MeshNormalMaterial()
+        var mesh = new THREE.Mesh(geometry, material)
+        scene.add(mesh)
+    })
 
     renderer = new THREE.WebGLRenderer({context:gl});
     renderer.setSize(width, height);
@@ -75,17 +75,14 @@ function init() {
     renderer.shadowMap.enabled = true;
 
     target = new THREE.WebGLRenderTarget(width, height);
+
 }
 
 app.get('/', function(req, res){
     response = res;
-    var rule1     = new schedule.RecurrenceRule();
-    var times1    = [1,2,3,4,5,6,7,8,9,10,11,12];
-    rule1.second  = times1;
-    schedule.scheduleJob(rule1, function(){
-        animate();
-    });
 
+    init();
+    setInterval(animate,33,"Interval");
 //    renderer.render(scene, camera, target);
 
 //    res.setHeader('Content-Type', 'image/png');
@@ -95,8 +92,6 @@ app.get('/', function(req, res){
 
 function animate() {
 
-    //requestAnimationFrame( animate );
-
     if ( mixers.length > 0 ) {
 
         for ( var i = 0; i < mixers.length; i ++ ) {
@@ -104,11 +99,13 @@ function animate() {
             mixers[ i ].update( clock.getDelta() );
         }
     }
+
     renderer.render( scene, camera, target );
 
-//    response.setHeader('Content-Type', 'image/png');
-//    pngStream(renderer, target).pipe(response);
-  //  stats.update();
+   // response.setHeader('Content-Type', 'image/png');
+   // pngStream(renderer, target).pipe(response);
+   // response.end();
+    //  stats.update();
 }
 
 /*
