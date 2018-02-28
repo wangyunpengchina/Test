@@ -5,15 +5,19 @@ var MockBrowser = require('mock-browser').mocks.MockBrowser;
 var mock = new MockBrowser();
 global.document = MockBrowser.createDocument();
 global.window = MockBrowser.createWindow();
-global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
-var schedule = require("node-schedule");
-require('three-fbx-loader')(THREE)
+global.XMLHttpRequest = require('w3c-xmlhttprequest').XMLHttpRequest;
 
+//window.Zlib = require('zlib');
+//global.Inflate = require("./libs/inflate.min.js");
+//global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
+//require('three-fbx-loader')(THREE)
+
+//require("./libs/inflate.min.js");
+require("./libs/Detector.js");
+require("./libs/FBXLoader.js");
 require("./libs/CanvasRenderer.js");
 require("./libs/Projector.js");
-require("./libs/inflate.min.js");
 require("./libs/controls/OrbitControls.js");
-require("./libs/Detector.js");
 var Stats = require("./libs/stats.min.js");
 
 //REST API
@@ -61,9 +65,29 @@ function init() {
     scene.add( light );
 
     //load fbx model file
+/*
+    var request = new XMLHttpRequest();
+
+    request.open('GET', '/resources/models/NA.fbx', true);
+    request.onreadystatechange = function() {
+        if (request.readyState === 4) {
+            if (request.status === 200 ) {
+                console.log('successful');
+                var headers = request.getAllResponseHeaders().toLowerCase();
+                console.log(headers);
+
+                var test = request.response;
+                console.log(test);
+            } else {
+                console.log('failed');
+            }
+        }
+    };
+    request.send(null);
+*/
     var loader = new THREE.FBXLoader()
 
-    loader.load('./resources/models/NA.fbx', function (geometry) {
+    loader.load('/resources/models/NA.fbx', function (geometry) {
         var material = new THREE.MeshNormalMaterial()
         var mesh = new THREE.Mesh(geometry, material)
         scene.add(mesh)
