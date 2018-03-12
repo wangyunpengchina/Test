@@ -7,8 +7,9 @@ global.document = MockBrowser.createDocument();
 global.window = MockBrowser.createWindow();
 global.XMLHttpRequest = require('w3c-xmlhttprequest').XMLHttpRequest;
 
-global.Zlib = require('zlib');
-global.Inflate = require("./libs/inflate.min.js");
+global.Zlib = require("zlib-sync");
+//global.Zlib = require('./libs/node-zlib.js');
+//Zlib.Inflate = require("./libs/inflate.min.js");
 //global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
 //require('three-fbx-loader')(THREE)
 
@@ -86,11 +87,11 @@ function init() {
     };
     request.send(null);
 */
-    var loader = new THREE.FBXLoader()
+    var loader = new THREE.FBXLoader();
 
     loader.load('/resources/models/NA_binary.fbx', function (geometry) {
-        var material = new THREE.MeshNormalMaterial()
-        var mesh = new THREE.Mesh(geometry, material)
+        var material = new THREE.MeshNormalMaterial();
+        var mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh)
     })
 

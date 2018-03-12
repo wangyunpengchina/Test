@@ -3129,14 +3129,27 @@
 
 					}
 
-					if ( window.Zlib === undefined ) {
+					if ( Zlib === undefined ) {
 
 						console.error( 'THREE.FBXLoader: External library Inflate.min.js required, obtain or import from https://github.com/imaya/zlib.js' );
 
 					}
 
+
+/*
 					var inflate = new Zlib.Inflate( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) ); // eslint-disable-line no-undef
 					var reader2 = new BinaryReader( inflate.decompress().buffer );
+					*/
+                    //svar reader2 = new BinaryReader( inflate.getArrayBuffer() );
+
+                    var inflate = new Zlib.Inflate();
+                    inflate.push(new Uint8Array( reader.getArrayBuffer( compressedLength ) ));
+                    if(inflate.err < 0) {
+                        throw new Error("zlib error: " + inflate.msg);
+                    }
+
+                    var result = inflate.result.buffer;
+                    var reader2 = new BinaryReader( result );
 
 					switch ( type ) {
 
