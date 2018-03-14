@@ -7,7 +7,8 @@ global.document = MockBrowser.createDocument();
 global.window = MockBrowser.createWindow();
 global.XMLHttpRequest = require('w3c-xmlhttprequest').XMLHttpRequest;
 
-global.Zlib = require("zlib-sync");
+//global.Zlib = require("zlib-sync");
+global.Zlib = require("zlib");
 //global.Zlib = require('./libs/node-zlib.js');
 //Zlib.Inflate = require("./libs/inflate.min.js");
 //global.XMLHttpRequest = require("xmlhttprequest").XMLHttpRequest;
@@ -15,8 +16,12 @@ global.Zlib = require("zlib-sync");
 
 //require("./libs/inflate.min.js");
 require("./libs/Detector.js");
-require("./libs/FBXLoader.js");
+//require("./libs/LoaderSupport.js");
+//require("./libs/OBJLoader2.js");
+require("./libs/OBJLoader.js");
+//require("./libs/FBXLoader.js");
 require("./libs/CanvasRenderer.js");
+const { Canvas } = require("canvas");
 require("./libs/Projector.js");
 require("./libs/controls/OrbitControls.js");
 var Stats = require("./libs/stats.min.js");
@@ -30,6 +35,7 @@ var router = express.Router();
 
 var width = 512;
 var height = 512;
+
 
 var gl = require('gl')(width, height, { preserveDrawingBuffer: true })
 
@@ -87,6 +93,7 @@ function init() {
     };
     request.send(null);
 */
+/*
     var loader = new THREE.FBXLoader();
 
     loader.load('/resources/models/NA_binary.fbx', function (geometry) {
@@ -94,14 +101,51 @@ function init() {
         var mesh = new THREE.Mesh(geometry, material);
         scene.add(mesh)
     })
+*/
 
-    renderer = new THREE.WebGLRenderer({context:gl});
-    renderer.setSize(width, height);
+    var loader = new THREE.OBJLoader();
+
+    loader.load(
+        // resource URL
+        '/resources/models/TestObj.obj',
+        // called when resource is loaded
+        function ( object ) {
+
+            scene.add( object );
+
+        },
+        // called when loading is in progresses
+        function ( xhr ) {
+
+            console.log( ( xhr.loaded / xhr.total * 100 ) + '% loaded' );
+
+        },
+        // called when loading has errors
+        function ( error ) {
+
+            console.log( 'An error happened' );
+
+        }
+    );
+
+    var canvas = new Canvas(width, height);
+    var renderer = new THREE.CanvasRenderer({
+        canvas: canvas
+    });
+  //  renderer = new THREE.WebGLRenderer({context:gl});
+    renderer.setSize(width, height,false);
     renderer.setClearColor(0x11aabb, 1);
-    renderer.shadowMap.enabled = true;
 
-    target = new THREE.WebGLRenderTarget(width, height);
+  //  target = new THREE.WebGLRenderTarget(width, height);
+/*
+    var loader = new THREE.OBJLoader2();
 
+    var callbackOnLoad = function ( event ) {
+        scene.add( event.detail.loaderRootNode );
+    };
+
+    loader.load( 'resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
+    */
 }
 
 app.get('/', function(req, res){
@@ -126,7 +170,8 @@ function animate() {
         }
     }
 
-    renderer.render( scene, camera, target );
+    renderer.render( scene, camera );
+   // renderer.render( scene, camera, target );
 
    // response.setHeader('Content-Type', 'image/png');
    // pngStream(renderer, target).pipe(response);

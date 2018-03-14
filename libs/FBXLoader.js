@@ -3134,12 +3134,10 @@
 						console.error( 'THREE.FBXLoader: External library Inflate.min.js required, obtain or import from https://github.com/imaya/zlib.js' );
 
 					}
-
-
-/*
+					/*
 					var inflate = new Zlib.Inflate( new Uint8Array( reader.getArrayBuffer( compressedLength ) ) ); // eslint-disable-line no-undef
 					var reader2 = new BinaryReader( inflate.decompress().buffer );
-					*/
+*/
                     //svar reader2 = new BinaryReader( inflate.getArrayBuffer() );
 
                     var inflate = new Zlib.Inflate();

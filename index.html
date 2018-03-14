@@ -34,6 +34,9 @@
 <script src="libs/inflate.min.js"></script>
 <script src="libs/FBXLoader.js"></script>
 
+<script src="libs/LoaderSupport.js"></script>
+<script src="libs/OBJLoader2.js"></script>
+
 <script src="libs/controls/OrbitControls.js"></script>
 
 <script src="libs/Detector.js"></script>
@@ -85,6 +88,7 @@
 
         // scene.add( new THREE.CameraHelper( light.shadow.camera ) );
         // model
+        /*
         var loader = new THREE.FBXLoader();
 
         loader.load( 'resources/models/NA_binary.fbx', function( object ) {
@@ -92,6 +96,15 @@
             scene.add( object );
 
         });
+        */
+
+        var loader = new THREE.OBJLoader2();
+
+        var callbackOnLoad = function ( event ) {
+            scene.add( event.detail.loaderRootNode );
+        };
+
+        loader.load( 'resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
 
         renderer = new THREE.WebGLRenderer();
         renderer.setPixelRatio( window.devicePixelRatio );
