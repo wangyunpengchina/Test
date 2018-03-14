@@ -25,6 +25,7 @@ const { Canvas } = require("canvas");
 require("./libs/Projector.js");
 require("./libs/controls/OrbitControls.js");
 var Stats = require("./libs/stats.min.js");
+var fs = require("fs");
 
 //REST API
 var express     = require('express');
@@ -46,14 +47,14 @@ var mixers = [];
 //var stats = new Stats();
 var clock = new THREE.Clock();
 
-var response, camera, scene, renderer, target;
+var response, camera, scene, renderer, target, _canvas;
 
 function init() {
     scene = new THREE.Scene();
     camera = new THREE.PerspectiveCamera( 45, width / height, 100, 50000 );
     camera.position.set( 2000, 30000, 3000 );
     scene.add(camera);
-
+/*
     //add controls
     var controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, 100, 0 );
@@ -71,7 +72,7 @@ function init() {
     light.shadow.camera.left = -120;
     light.shadow.camera.right = 120;
     scene.add( light );
-
+*/
     //load fbx model file
 /*
     var request = new XMLHttpRequest();
@@ -102,7 +103,7 @@ function init() {
         scene.add(mesh)
     })
 */
-
+/*
     var loader = new THREE.OBJLoader();
 
     loader.load(
@@ -111,7 +112,7 @@ function init() {
         // called when resource is loaded
         function ( object ) {
 
-            scene.add( object );
+           // scene.add( object );
 
         },
         // called when loading is in progresses
@@ -127,10 +128,10 @@ function init() {
 
         }
     );
-
-    var canvas = new Canvas(width, height);
-    var renderer = new THREE.CanvasRenderer({
-        canvas: canvas
+*/
+    _canvas = new Canvas(width, height);
+    renderer = new THREE.CanvasRenderer({
+        canvas: _canvas
     });
   //  renderer = new THREE.WebGLRenderer({context:gl});
     renderer.setSize(width, height,false);
@@ -171,12 +172,21 @@ function animate() {
     }
 
     renderer.render( scene, camera );
-   // renderer.render( scene, camera, target );
 
-   // response.setHeader('Content-Type', 'image/png');
-   // pngStream(renderer, target).pipe(response);
-   // response.end();
-    //  stats.update();
+    var out = fs.createWriteStream("./test-out.png");
+    var canvasStream = _canvas.pngStream();
+
+    canvasStream.on("data", function (chunk) {
+        out.write(chunk);
+    });
+    canvasStream.on("end", function () { console.log("done"); });
+   // renderer.render( scene, camera, target );
+/*
+    response.setHeader('Content-Type', 'image/png');
+    pngStream(renderer, target).pipe(response);
+    response.end();
+  */
+  //  stats.update();
 }
 
 /*
