@@ -30,6 +30,8 @@
 
 <body>
 <script src="libs/three.js"></script>
+<script src="libs/CanvasRenderer.js"></script>
+<script src="libs/Projector.js"></script>
 
 <script src="libs/inflate.min.js"></script>
 <script src="libs/FBXLoader.js"></script>
@@ -107,8 +109,10 @@
         loader.load( 'resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
 
         renderer = new THREE.WebGLRenderer();
-        renderer.setPixelRatio( window.devicePixelRatio );
+        //renderer = new THREE.CanvasRenderer();
+       // renderer.setPixelRatio( window.devicePixelRatio );
         renderer.setSize( window.innerWidth, window.innerHeight );
+        renderer.setClearColor(0x11aabb, 1);
         renderer.shadowMap.enabled = true;
         container.appendChild( renderer.domElement );
 

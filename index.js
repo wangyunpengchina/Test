@@ -54,7 +54,7 @@ function init() {
     camera = new THREE.PerspectiveCamera( 45, width / height, 100, 50000 );
     camera.position.set( 2000, 30000, 3000 );
     scene.add(camera);
-/*
+
     //add controls
     var controls = new THREE.OrbitControls( camera );
     controls.target.set( 0, 100, 0 );
@@ -72,7 +72,7 @@ function init() {
     light.shadow.camera.left = -120;
     light.shadow.camera.right = 120;
     scene.add( light );
-*/
+
     //load fbx model file
 /*
     var request = new XMLHttpRequest();
@@ -103,7 +103,7 @@ function init() {
         scene.add(mesh)
     })
 */
-/*
+
     var loader = new THREE.OBJLoader();
 
     loader.load(
@@ -112,7 +112,7 @@ function init() {
         // called when resource is loaded
         function ( object ) {
 
-           // scene.add( object );
+            scene.add( object );
 
         },
         // called when loading is in progresses
@@ -128,16 +128,18 @@ function init() {
 
         }
     );
-*/
+/*
     _canvas = new Canvas(width, height);
     renderer = new THREE.CanvasRenderer({
         canvas: _canvas
     });
-  //  renderer = new THREE.WebGLRenderer({context:gl});
+    */
+    renderer = new THREE.WebGLRenderer({context:gl});
     renderer.setSize(width, height,false);
-    renderer.setClearColor(0x11aabb, 1);
+    renderer.setClearColor(0xaaaabb, 1);
+    renderer.shadowMap.enabled = true;
 
-  //  target = new THREE.WebGLRenderTarget(width, height);
+    target = new THREE.WebGLRenderTarget(width, height);
 /*
     var loader = new THREE.OBJLoader2();
 
@@ -171,21 +173,26 @@ function animate() {
         }
     }
 
-    renderer.render( scene, camera );
+   // renderer.render( scene, camera );
 
+    /*
     var out = fs.createWriteStream("./test-out.png");
     var canvasStream = _canvas.pngStream();
 
+    canvasStream.on('error', function (error) {
+        console.log(error);
+    });
     canvasStream.on("data", function (chunk) {
         out.write(chunk);
     });
     canvasStream.on("end", function () { console.log("done"); });
-   // renderer.render( scene, camera, target );
+    */
+    renderer.render( scene, camera, target );
 /*
     response.setHeader('Content-Type', 'image/png');
     pngStream(renderer, target).pipe(response);
     response.end();
-  */
+*/
   //  stats.update();
 }
 
