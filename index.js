@@ -16,12 +16,12 @@ global.Zlib = require("zlib");
 
 //require("./libs/inflate.min.js");
 require("./libs/Detector.js");
-//require("./libs/LoaderSupport.js");
-//require("./libs/OBJLoader2.js");
+require("./libs/LoaderSupport.js");
+require("./libs/OBJLoader2.js");
 require("./libs/OBJLoader.js");
 //require("./libs/FBXLoader.js");
-require("./libs/CanvasRenderer.js");
-const { Canvas } = require("canvas");
+//require("./libs/CanvasRenderer.js");
+//const { Canvas } = require("canvas");
 require("./libs/Projector.js");
 require("./libs/controls/OrbitControls.js");
 var Stats = require("./libs/stats.min.js");
@@ -36,7 +36,6 @@ var router = express.Router();
 
 var width = 512;
 var height = 512;
-
 
 var gl = require('gl')(width, height, { preserveDrawingBuffer: true })
 
@@ -103,7 +102,7 @@ function init() {
         scene.add(mesh)
     })
 */
-
+/*
     var loader = new THREE.OBJLoader();
 
     loader.load(
@@ -128,6 +127,7 @@ function init() {
 
         }
     );
+    */
 /*
     _canvas = new Canvas(width, height);
     renderer = new THREE.CanvasRenderer({
@@ -140,15 +140,15 @@ function init() {
     renderer.shadowMap.enabled = true;
 
     target = new THREE.WebGLRenderTarget(width, height);
-/*
+
     var loader = new THREE.OBJLoader2();
 
     var callbackOnLoad = function ( event ) {
         scene.add( event.detail.loaderRootNode );
     };
 
-    loader.load( 'resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
-    */
+    loader.load( '/resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
+
 }
 
 app.get('/', function(req, res){
@@ -158,8 +158,16 @@ app.get('/', function(req, res){
     setInterval(animate,33,"Interval");
 //    renderer.render(scene, camera, target);
 
-//    res.setHeader('Content-Type', 'image/png');
- //   pngStream(renderer, target).pipe(res);
+    // now you can write it to a new PNG file
+/*    var output = fs.createWriteStream('image.png')
+    pngStream(renderer, target)
+        .pipe(output)
+        */
+/*
+    response.setHeader('Content-Type', 'image/png');
+    pngStream(renderer, target).pipe(res);
+    response.end();
+    */
 });
 
 
@@ -188,6 +196,9 @@ function animate() {
     canvasStream.on("end", function () { console.log("done"); });
     */
     renderer.render( scene, camera, target );
+    var output = fs.createWriteStream('image.png')
+    pngStream(renderer, target)
+        .pipe(output);
 /*
     response.setHeader('Content-Type', 'image/png');
     pngStream(renderer, target).pipe(response);
