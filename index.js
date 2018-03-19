@@ -19,6 +19,7 @@ require("./libs/Detector.js");
 require("./libs/LoaderSupport.js");
 require("./libs/OBJLoader2.js");
 require("./libs/OBJLoader.js");
+require("./libs/MTLLoader.js");
 //require("./libs/FBXLoader.js");
 //require("./libs/CanvasRenderer.js");
 //const { Canvas } = require("canvas");
@@ -141,14 +142,20 @@ function init() {
 
     target = new THREE.WebGLRenderTarget(width, height);
 
-    var loader = new THREE.OBJLoader2();
+    var objLoader = new THREE.OBJLoader2();
 
     var callbackOnLoad = function ( event ) {
         scene.add( event.detail.loaderRootNode );
     };
+//    loader.load( '/resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
 
-    loader.load( '/resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
-
+    var onLoadMtl = function ( materials ) {
+ //       objLoader.setModelName( modelName );
+        objLoader.setMaterials( materials );
+        objLoader.getLogger().setDebug( true );
+        objLoader.load( '/resources/models/TestObj.obj', callbackOnLoad, null, null, null, false );
+    };
+    objLoader.loadMtl( '/resources/models/TestObj.mtl', null, onLoadMtl );
 }
 
 app.get('/', function(req, res){
