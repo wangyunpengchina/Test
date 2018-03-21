@@ -10,7 +10,13 @@
             xhr.onreadystatechange=function(){
                 if(xhr.readyState==4){
                     if(xhr.status==200){
-                        document.getElementById("res").innerHTML=xhr.responseText;
+			 var blob = this.response;
+                         var img = document.createElement("img");
+                         img.onload = function(e) {
+                                    window.URL.revokeObjectURL(img.src);
+                                    };
+                         img.src = window.URL.createObjectURL(blob);
+			 document.getElementById("res").innerHTML=img;
                     }
                 }
             }
@@ -20,6 +26,6 @@
 </head>
 <body>
 <input type="button" value="获取数据" onclick="GetData()" />
-<div id="res">dsdf</div>
+<div id="res">显示结果</div>
 </body>
 </html>

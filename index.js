@@ -48,6 +48,7 @@ var mixers = [];
 var clock = new THREE.Clock();
 
 var response, camera, scene, renderer, target, _canvas;
+var inited = false;
 
 function init() {
     scene = new THREE.Scene();
@@ -161,20 +162,26 @@ function init() {
 app.get('/', function(req, res){
     response = res;
 
-    init();
-    setInterval(animate,33,"Interval");
-//    renderer.render(scene, camera, target);
+    if(!inited)
+    {
+        init();
+        inited = true;
+    }
+//    setInterval(animate,33,"Interval");
+
+ //   response.setHeader('Content-Type', 'image/png');
+    renderer.render(scene, camera, target);
 
     // now you can write it to a new PNG file
 /*    var output = fs.createWriteStream('image.png')
     pngStream(renderer, target)
         .pipe(output)
         */
-/*
+
     response.setHeader('Content-Type', 'image/png');
-    pngStream(renderer, target).pipe(res);
-    response.end();
-    */
+    pngStream(renderer, target).pipe(response);
+  //  response.end();
+
 });
 
 
@@ -203,14 +210,17 @@ function animate() {
     canvasStream.on("end", function () { console.log("done"); });
     */
     renderer.render( scene, camera, target );
+
+    /*
     var output = fs.createWriteStream('image.png')
     pngStream(renderer, target)
         .pipe(output);
-/*
-    response.setHeader('Content-Type', 'image/png');
-    pngStream(renderer, target).pipe(response);
-    response.end();
-*/
+       */
+
+ //   response.setHeader('Content-Type', 'image/png');
+ //   pngStream(renderer, target).pipe(response);
+ //   response.send();
+
   //  stats.update();
 }
 
