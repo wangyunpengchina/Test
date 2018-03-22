@@ -8,7 +8,8 @@
             var xhr=new XMLHttpRequest();
 	    xhr.responseType = 'blob';
             xhr.open("GET","http://localhost:8888/",true);
-            xhr.onreadystatechange=function(){
+            xhr.setRequestHeader("Content-Type",'text/html'); 
+		xhr.onreadystatechange=function(){
                 if(xhr.readyState==4){
                     if(xhr.status==200){
 			 var blob = new Blob([this.response],{type:'image/png'});
