@@ -6,6 +6,7 @@
     <script type="text/javascript">
         function GetData(){
             var xhr=new XMLHttpRequest();
+	    xhr.responseType = 'blob';
             xhr.open("GET","http://localhost:8888/",true);
             xhr.onreadystatechange=function(){
                 if(xhr.readyState==4){
