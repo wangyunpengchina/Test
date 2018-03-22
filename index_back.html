@@ -10,13 +10,14 @@
             xhr.onreadystatechange=function(){
                 if(xhr.readyState==4){
                     if(xhr.status==200){
-			 var blob = this.response;
+			 var blob = new Blob([this.response],{type:'image/png'});
+			 //blob = this.response;
                          var img = document.createElement("img");
-                         img.onload = function(e) {
-                                    window.URL.revokeObjectURL(img.src);
-                                    };
-                         img.src = window.URL.createObjectURL(blob);
-			 document.getElementById("res").innerHTML=img;
+                         
+			 var url =  window.URL.createObjectURL(blob);
+                         img.src = url;
+                        // img.src = blob;
+			 document.getElementById("res").appendChild(img);
                     }
                 }
             }

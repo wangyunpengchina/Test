@@ -173,15 +173,42 @@ app.get('/', function(req, res){
     renderer.render(scene, camera, target);
 
     // now you can write it to a new PNG file
-/*    var output = fs.createWriteStream('image.png')
-    pngStream(renderer, target)
-        .pipe(output)
-        */
+    var output = fs.createWriteStream('image.png');
 
-    response.setHeader('Content-Type', 'image/png');
-    pngStream(renderer, target).pipe(response);
+    output.once('error', err => {
+        console.error(err);
+});
+    output.on('close', function () {
+        output.end();
+
+        fs.readFile('image.png','binary',function(err, file) {
+            if (err) {
+                console.log(err);
+                return;
+            } else {
+                response.setHeader("Access-Control-Allow-Origin", "*");
+         //       response.writeHeader(200, {'Content - Type': 'image/png'});
+                response.write(file,'binary')
+                response.end();
+
+            }
+        })
+
+    })
+
+
+    var stream = pngStream(renderer, target);
+    stream.pipe(output);
+
+
+//    response.setHeader('Content-Type', 'image/png');
+//    pngStream(renderer, target).pipe(response);
   //  response.end();
 
+    // response.setHeader('Content-Type', 'image/png');
+    // response.writeHeader(200, "OK");
+    // response.write(pngStream(renderer, target), "binary");
+    // response.end();
 });
 
 
