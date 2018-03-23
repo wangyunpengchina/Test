@@ -12,15 +12,17 @@
 			xhr.onreadystatechange=function(){
                 if(xhr.readyState==4){
                     if(xhr.status==200){
-			 var blob = new Blob([this.response],{type:'image/png'});
-			 //blob = this.response;
+                        var blob = new Blob([this.response],{type:'image/png'});
                          //var img = document.createElement("img");
                          var img = document.getElementById("resImg");
-
-			 var url =  window.URL.createObjectURL(blob);
+                         var url =  window.URL.createObjectURL(blob);
                          img.src = url;
+
+                         setTimeout(function () {
+                            GetData();
+                         }, 10);
                         // img.src = blob;
-			// document.getElementById("res").appendChild(img);
+			          // document.getElementById("res").appendChild(img);
                     }
                 }
             }

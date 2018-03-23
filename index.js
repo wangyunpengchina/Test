@@ -169,6 +169,9 @@ app.get('/api', function(req, res){
     }
 //    setInterval(animate,33,"Interval");
 
+    //process animation
+    myCameraTween(camera,360,1,3);
+
  //   response.setHeader('Content-Type', 'image/png');
     renderer.render(scene, camera, target);
 
@@ -249,6 +252,39 @@ function animate() {
  //   response.send();
 
   //  stats.update();
+}
+
+function myCameraTween(camera, angle, segs, during) {
+
+    var x = camera.position.x;
+    var y = camera.position.y;
+    var z = camera.position.z;
+
+
+    var endPosArray = new Array();
+
+    var perAngle = angle / segs;
+
+    for (var i = 1 ; i <= segs ; i++) {
+        var endPos = { "x": z * Math.sin(i * perAngle) + x * Math.cos(i * perAngle), "y": y, "z": z * Math.cos(i * perAngle) - x * Math.sin(i * perAngle) };
+
+        endPosArray.push(endPos);
+    }
+
+
+    var flag = 0;
+    var id = setInterval(function () {
+        if (flag == segs) {
+            clearInterval(id);
+        } else {
+            camera.position.x = endPosArray[flag].x;
+            camera.position.y = endPosArray[flag].y;
+            camera.position.z = endPosArray[flag].z;
+
+            flag++;
+        }
+
+    }, during / segs);
 }
 
 /*
