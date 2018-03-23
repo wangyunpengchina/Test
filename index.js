@@ -159,7 +159,7 @@ function init() {
     objLoader.loadMtl( '/resources/models/TestObj.mtl', null, onLoadMtl );
 }
 
-app.get('/', function(req, res){
+app.get('/api', function(req, res){
     response = res;
 
     if(!inited)

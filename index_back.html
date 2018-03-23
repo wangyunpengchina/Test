@@ -7,19 +7,20 @@
         function GetData(){
             var xhr=new XMLHttpRequest();
 	    xhr.responseType = 'blob';
-            xhr.open("GET","http://localhost:8888/",true);
-            xhr.setRequestHeader("Content-Type",'text/html'); 
-		xhr.onreadystatechange=function(){
+            xhr.open("GET","http://172.16.142.59:8888/api",true);
+            // xhr.open("GET","http://127.0.0.1:8888/",true);
+			xhr.onreadystatechange=function(){
                 if(xhr.readyState==4){
                     if(xhr.status==200){
 			 var blob = new Blob([this.response],{type:'image/png'});
 			 //blob = this.response;
-                         var img = document.createElement("img");
-                         
+                         //var img = document.createElement("img");
+                         var img = document.getElementById("resImg");
+
 			 var url =  window.URL.createObjectURL(blob);
                          img.src = url;
                         // img.src = blob;
-			 document.getElementById("res").appendChild(img);
+			// document.getElementById("res").appendChild(img);
                     }
                 }
             }
@@ -29,6 +30,8 @@
 </head>
 <body>
 <input type="button" value="获取数据" onclick="GetData()" />
-<div id="res">显示结果</div>
+<div id="res">
+<img id="resImg"></img>
+</div>
 </body>
 </html>
