@@ -22,7 +22,9 @@ require("./libs/OBJLoader.js");
 require("./libs/MTLLoader.js");
 //require("./libs/FBXLoader.js");
 //require("./libs/CanvasRenderer.js");
-//const { Canvas } = require("canvas");
+//const Canvas = require('canvas');
+//const canvas = new Canvas(parseInt(512,10), parseInt(512,10));
+
 require("./libs/Projector.js");
 require("./libs/controls/OrbitControls.js");
 var Stats = require("./libs/stats.min.js");
@@ -34,6 +36,11 @@ var app         = express();
 var bodyParser  = require('body-parser');
 var router = express.Router();
 
+const easyMonitor = require('easy-monitor');
+easyMonitor('Test');
+
+var assign = require('object-assign');
+var Readable = require('readable-stream').Readable;
 
 var width = 512;
 var height = 512;
@@ -130,13 +137,13 @@ function init() {
         }
     );
     */
+
 /*
-    _canvas = new Canvas(width, height);
     renderer = new THREE.CanvasRenderer({
-        canvas: _canvas
+        canvas: canvas
     });
-    */
-    renderer = new THREE.WebGLRenderer({context:gl});
+*/
+    renderer = new THREE.WebGLRenderer({context:gl, preserveDrawingBuffer: true});
     renderer.setSize(width, height,false);
     renderer.setClearColor(0xaaaabb, 1);
     renderer.shadowMap.enabled = true;
@@ -176,6 +183,7 @@ app.get('/api', function(req, res){
     renderer.render(scene, camera, target);
 
     // now you can write it to a new PNG file
+
     var output = fs.createWriteStream('image.png');
 
     output.once('error', err => {
@@ -200,7 +208,9 @@ app.get('/api', function(req, res){
     })
 
 
-    var stream = pngStream(renderer, target);
+//    var stream = pngStream(renderer, target);
+    var stream = getRenderData(renderer, target);
+
     stream.pipe(output);
 
 
@@ -285,6 +295,169 @@ function myCameraTween(camera, angle, segs, during) {
         }
 
     }, during / segs);
+}
+function getGLFormat (gl, format) {
+    switch (format) {
+        case THREE.RGBFormat: return gl.RGB
+        case THREE.RGBAFormat: return gl.RGBA
+        case THREE.LuminanceFormat: return gl.LUMINANCE
+        case THREE.LuminanceAlphaFormat: return gl.LUMINANCE_ALPHA
+        case THREE.AlphaFormat: return gl.ALPHA
+        default: throw new TypeError('unsupported format ' + format)
+    }
+}
+
+
+function getRenderData(renderer, target, opt) {
+    if (typeof THREE === 'undefined') throw new Error('THREE is not defined in global scope')
+    if (!renderer || typeof renderer.getContext !== 'function') {
+        throw new TypeError('Must specify a ThreeJS WebGLRenderer.')
+    }
+
+    var gl = renderer.getContext()
+    if (!target) {
+        throw new TypeError('Must specify WebGLRenderTarget,\npopulated with the contents for export.')
+    }
+
+    opt = opt || {}
+    var format = opt.format
+    if (!format && target.texture && target.texture.format) {
+        format = target.texture.format
+    } else if (!format) {
+        format = target.format
+    }
+
+    var glFormat = getGLFormat(gl, format)
+    var shape = [ target.width, target.height ]
+
+    var framebuffer = target.__webglFramebuffer
+    if (!framebuffer) {
+        if (!renderer.properties) {
+            throw new Error(versionError)
+        }
+        var props = renderer.properties.get(target)
+        if (!props) throw new Error(versionError)
+        framebuffer = props.__webglFramebuffer
+    }
+
+    opt = assign({
+        flipY: true
+    }, opt, {
+        format: glFormat
+    })
+
+    var stream = glPixelStream(gl, framebuffer, shape, opt);
+    return stream;
+}
+
+function glPixelStream (gl, fboHandle, size, opt) {
+    if (!gl) {
+        throw new TypeError('must specify gl context')
+    }
+    if (typeof fboHandle === 'undefined') {
+        throw new TypeError('must specify a FrameBufferObject handle')
+    }
+    if (!Array.isArray(size)) {
+        throw new TypeError('must specify a [width, height] size')
+    }
+
+    opt = opt || {}
+    var DEFAULT_CHUNK_SIZE = 128;
+    var width = Math.floor(size[0])
+    var height = Math.floor(size[1])
+    var flipY = opt.flipY
+    var format = opt.format || gl.RGBA
+    var stride = typeof opt.stride === 'number'
+        ? opt.stride : guessStride(gl, format)
+    var chunkSize = typeof opt.chunkSize === 'number'
+        ? opt.chunkSize : DEFAULT_CHUNK_SIZE
+    var onProgress = opt.onProgress
+
+    // clamp chunk size
+    chunkSize = Math.min(Math.floor(chunkSize), height)
+
+    var totalChunks = Math.ceil(height / chunkSize)
+    var currentChunk = 0
+    var stream = new Readable()
+    stream._read = read
+    return stream
+
+    function read () {
+        if (currentChunk > totalChunks - 1) {
+            return process.nextTick(function () {
+                stream.push(null)
+            })
+        }
+
+        gl.bindFramebuffer(gl.FRAMEBUFFER, fboHandle)
+        var status = gl.checkFramebufferStatus(gl.FRAMEBUFFER)
+        if (status !== gl.FRAMEBUFFER_COMPLETE) {
+            var self = this
+            return process.nextTick(function () {
+                self.emit('error', new Error('Framebuffer not complete, cannot gl.readPixels'))
+            })
+        }
+
+        var yOffset = chunkSize * currentChunk
+        var dataHeight = Math.min(chunkSize, height - yOffset)
+        if (flipY) {
+            yOffset = height - yOffset - dataHeight
+        }
+
+        var outBuffer = new Buffer(width * dataHeight * stride)
+        gl.viewport(0, 0, width, height)
+        gl.readPixels(0, yOffset, width, dataHeight, format, gl.UNSIGNED_BYTE, outBuffer)
+        gl.bindFramebuffer(gl.FRAMEBUFFER, null)
+
+        var rowBuffer = outBuffer
+        if (flipY) {
+            flipVertically(outBuffer, width, dataHeight, stride)
+        }
+        currentChunk++
+        if (typeof onProgress === 'function') {
+            onProgress({
+                bounds: [ 0, yOffset, width, dataHeight ],
+                current: currentChunk,
+                total: totalChunks
+            })
+        }
+        stream.push(rowBuffer)
+    }
+}
+
+function guessStride (gl, format) {
+    switch (format) {
+        case gl.RGB:
+            return 3
+        case gl.LUMINANCE_ALPHA:
+            return 2
+        case gl.ALPHA:
+        case gl.LUMINANCE:
+            return 1
+        default:
+            return 4
+    }
+}
+
+function flipVertically (pixels, width, height, stride) {
+    var rowLength = width * stride
+    var temp = Buffer.allocUnsafe(rowLength)
+    var halfRows = Math.floor(height / 2)
+    for (var rowIndex = 0; rowIndex < halfRows; rowIndex++) {
+        var otherRowIndex = height - rowIndex - 1;
+
+        var curRowStart = rowLength * rowIndex;
+        var curRowEnd = curRowStart + rowLength;
+        var otherRowStart = rowLength * otherRowIndex;
+        var otherRowEnd = otherRowStart + rowLength;
+
+        // copy current row into temp
+        pixels.copy(temp, 0, curRowStart, curRowEnd)
+        // now copy other row into current row
+        pixels.copy(pixels, curRowStart, otherRowStart, otherRowEnd)
+        // and now copy temp back to other slot
+        temp.copy(pixels, otherRowStart, 0, rowLength)
+    }
 }
 
 /*
