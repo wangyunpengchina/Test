@@ -71,6 +71,9 @@
         controls.target.set( 0, 100, 0 );
         controls.update();
 
+        var dec = new Uint8Array(10);
+        var src = new Uint8Array(10);
+
         scene = new THREE.Scene();
         scene.background = new THREE.Color( 0xa0a0a0 );
         //scene.fog = new THREE.Fog( 0xa0a0a0, 200, 1000 );

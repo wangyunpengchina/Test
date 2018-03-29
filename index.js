@@ -190,7 +190,7 @@ app.get('/api', function(req, res){
 //    setInterval(animate,33,"Interval");
 
     //process animation
-    myCameraTween(camera,360,1,3);
+    myCameraTween(camera,360,3600,100);
 
  //   response.setHeader('Content-Type', 'image/png');
     renderer.render(scene, camera, target);
@@ -224,14 +224,21 @@ app.get('/api', function(req, res){
 
     var stream = getRenderData(renderer, target);
 
-    stream.on('close', function () {
-        response.end();
-    })
+    // stream.on('end', function () {
+    //     response.end();
+    // })
 
     response.setHeader("Access-Control-Allow-Origin", "*");
    // stream.pipe(new JPEGEncoder({ width: width, height: height, quality: 80 })).pipe(response);
    const inflate = Zlib.createDeflate();
-   stream.pipe(inflate).pipe(response);
+
+   var streaminflat = stream.pipe(inflate);
+
+    streaminflat.on('end', function () {
+        response.end();
+    })
+
+   streaminflat.pipe(response);
 
     //  var frameData = new Buffer(width * height * 4);
    //
