@@ -30,11 +30,17 @@ require("./libs/controls/OrbitControls.js");
 var Stats = require("./libs/stats.min.js");
 var fs = require("fs");
 
+var bmp = require("bmp-js");
+var streamToBuffer = require('stream-to-buffer')
+
 //REST API
 var express     = require('express');
 var app         = express();
 var bodyParser  = require('body-parser');
 var router = express.Router();
+var JPEGEncoder = require('jpg-stream/encoder');
+var jpeg = require('jpeg-js');
+var ColorTransform = require('color-transform');
 
 const easyMonitor = require('easy-monitor');
 easyMonitor('Test');
@@ -143,12 +149,19 @@ function init() {
         canvas: canvas
     });
 */
-    renderer = new THREE.WebGLRenderer({context:gl, preserveDrawingBuffer: true});
-    renderer.setSize(width, height,false);
+    renderer = new THREE.WebGLRenderer({context:gl});
+    renderer.setSize(width, height);
     renderer.setClearColor(0xaaaabb, 1);
     renderer.shadowMap.enabled = true;
 
     target = new THREE.WebGLRenderTarget(width, height);
+/*
+    target = new THREE.WebGLRenderTarget(width, height, {
+        minFilter: THREE.LinearFilter,
+        magFilter: THREE.NearestFilter,
+        format: THREE.RGBFormat
+    });
+*/
 
     var objLoader = new THREE.OBJLoader2();
 
@@ -183,7 +196,7 @@ app.get('/api', function(req, res){
     renderer.render(scene, camera, target);
 
     // now you can write it to a new PNG file
-
+/*
     var output = fs.createWriteStream('image.png');
 
     output.once('error', err => {
@@ -206,17 +219,54 @@ app.get('/api', function(req, res){
         })
 
     })
+*/
 
 
-//    var stream = pngStream(renderer, target);
     var stream = getRenderData(renderer, target);
 
-    stream.pipe(output);
+    stream.on('close', function () {
+        response.end();
+    })
+
+    response.setHeader("Access-Control-Allow-Origin", "*");
+   // stream.pipe(new JPEGEncoder({ width: width, height: height, quality: 80 })).pipe(response);
+   const inflate = Zlib.createDeflate();
+   stream.pipe(inflate).pipe(response);
+
+    //  var frameData = new Buffer(width * height * 4);
+   //
+   //  var rawImageData = {
+   //      data: frameData,
+   //      width: width,
+   //      height: height
+   //  };
+   //
+   //  var streamRead =
+   //
+   //      streamToBuffer(stream, function (err, buffer) {
+   //          var bmpData={data:buffer,width:width,height:height}
+   //          var rawData = bmp.encode(bmpData);
+   //
+   //          response.write(rawData.data,'binary');
+   //          response.end();
+   //      })
+
+    // stream.on("data", function (chunk) {
+    //     frameData = chunk;
+    // });
+    // stream.on("end", function () { resolve(Buffer.concat(rawImageData)); });
+    //
+    // stream.on('close', function () {
+    //     var jpegImageData = jpeg.encode(rawImageData, 50);
+    //     jpegImageData.pipe(response);
+    // })
 
 
-//    response.setHeader('Content-Type', 'image/png');
-//    pngStream(renderer, target).pipe(response);
-  //  response.end();
+
+
+  //    response.setHeader('Content-Type', 'image/png');
+  //    pngStream(renderer, target).pipe(output);
+      //response.end();
 
     // response.setHeader('Content-Type', 'image/png');
     // response.writeHeader(200, "OK");
@@ -411,7 +461,7 @@ function glPixelStream (gl, fboHandle, size, opt) {
 
         var rowBuffer = outBuffer
         if (flipY) {
-            flipVertically(outBuffer, width, dataHeight, stride)
+           flipVertically(outBuffer, width, dataHeight, stride)
         }
         currentChunk++
         if (typeof onProgress === 'function') {
@@ -421,7 +471,11 @@ function glPixelStream (gl, fboHandle, size, opt) {
                 total: totalChunks
             })
         }
-        stream.push(rowBuffer)
+
+        //special process from rgba to rgb
+       // var outRGBBuffer = new Buffer(width * dataHeight * 3)
+       // rgbaToRgb(outRGBBuffer,outBuffer, width, dataHeight, stride);
+        stream.push(outBuffer)
     }
 }
 
@@ -436,6 +490,21 @@ function guessStride (gl, format) {
             return 1
         default:
             return 4
+    }
+}
+
+function rgbaToRgb(rgbPixels,pixels, width, height, stride) {
+    if(stride == 4)
+    {
+        var totalNum = width * height * stride;
+        var pixelChunkIndex = 0 ;
+        for(var pixelIndex = 0; pixelIndex < totalNum; pixelIndex += stride){
+            rgbPixels[pixelChunkIndex*3 + 0] = pixels[pixelIndex];
+            rgbPixels[pixelChunkIndex*3 + 1] = pixels[pixelIndex+1];
+            rgbPixels[pixelChunkIndex*3 + 2] = pixels[pixelIndex+2];
+
+            ++pixelChunkIndex;
+        }
     }
 }
 
